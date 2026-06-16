@@ -1,0 +1,42 @@
+{
+  "kind": "collectionType",
+  "collectionName": "sapio_applications",
+  "info": {
+    "singularName": "sapio-application",
+    "pluralName": "sapio-applications",
+    "displayName": "SapioApplication",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "packageName": {
+      "type": "string"
+    },
+    "microg": {
+      "type": "integer"
+    },
+    "rooted": {
+      "type": "integer"
+    },
+    "rating": {
+      "type": "integer"
+    },
+    "icon": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    }
+  }
+}
