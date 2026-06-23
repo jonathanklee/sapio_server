@@ -27,6 +27,10 @@
     "rating": {
       "type": "integer"
     },
+    "brokenFeatures": {
+      "type": "json",
+      "required": false
+    },
     "icon": {
       "type": "media",
       "multiple": false,
@@ -37,6 +41,10 @@
         "videos",
         "audios"
       ]
+    },
+    "versionName": {
+      "type": "string",
+      "required": false
     }
   }
 }
