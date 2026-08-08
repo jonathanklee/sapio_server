@@ -1,57 +1,85 @@
-# 🚀 Getting started with Strapi
+# Sapio server
 
-Strapi comes with a full featured [Command Line Interface](https://docs.strapi.io/developer-docs/latest/developer-resources/cli/CLI.html) (CLI) which lets you scaffold and manage your project in seconds.
+Backend for [Sapio](https://github.com/jonathanklee/Sapio) — community
+compatibility data for Android apps running without Google Play Services.
 
-### `develop`
+Serves the public API at **https://server.checksap.io/api** and stores the app
+icons shown on [checksap.io](https://checksap.io) and in the Android app.
 
-Start your Strapi application with autoReload enabled. [Learn more](https://docs.strapi.io/developer-docs/latest/developer-resources/cli/CLI.html#strapi-develop)
+- **Strapi 4.3.2** on Node 16 (Strapi declares `>=12 <=16`)
+- **SQLite** — the dataset is small, a few thousand evaluations
+- **nginx** in front, terminating TLS; Strapi itself only listens on `127.0.0.1:1337`
 
-```
-npm run develop
-# or
-yarn develop
-```
+## Deploying to a fresh machine
 
-### `start`
-
-Start your Strapi application with autoReload disabled. [Learn more](https://docs.strapi.io/developer-docs/latest/developer-resources/cli/CLI.html#strapi-start)
-
-```
-npm run start
-# or
-yarn start
+```sh
+sudo ./deploy/nginx/bootstrap.sh you@example.com   # nginx + Let's Encrypt certificates
+./deploy.sh user@host --with-data                  # Strapi + database + uploads
 ```
 
-### `build`
+`bootstrap.sh` is only needed once per machine. Afterwards, redeploying is a
+single command:
 
-Build your admin panel. [Learn more](https://docs.strapi.io/developer-docs/latest/developer-resources/cli/CLI.html#strapi-build)
-
-```
-npm run build
-# or
-yarn build
+```sh
+./deploy.sh user@host
 ```
 
-## ⚙️ Deployment
+It syncs the source, pushes `.env`, rebuilds the image on the target and
+restarts. Data is never deleted remotely — `--with-data` only adds.
 
-Strapi gives you many possible deployment options for your project. Find the one that suits you on the [deployment section of the documentation](https://docs.strapi.io/developer-docs/latest/setup-deployment-guides/deployment.html).
+Requirements on the target: docker, the compose plugin, your SSH key, and DNS
+already pointing at it (the certificates use an HTTP-01 challenge).
 
-## 📚 Learn more
+## Running it locally
 
-- [Resource center](https://strapi.io/resource-center) - Strapi resource center.
-- [Strapi documentation](https://docs.strapi.io) - Official Strapi documentation.
-- [Strapi tutorials](https://strapi.io/tutorials) - List of tutorials made by the core team and the community.
-- [Strapi blog](https://docs.strapi.io) - Official Strapi blog containing articles made by the Strapi team and the community.
-- [Changelog](https://strapi.io/changelog) - Find out about the Strapi product updates, new features and general improvements.
+```sh
+cp .env.example .env      # then fill in the secrets
+docker compose up --build
+```
 
-Feel free to check out the [Strapi GitHub repository](https://github.com/strapi/strapi). Your feedback and contributions are welcome!
+Strapi comes up on <http://127.0.0.1:1337>, admin panel at `/admin`, against an
+empty database under `./data/db`.
 
-## ✨ Community
+## State that matters
 
-- [Discord](https://discord.strapi.io) - Come chat with the Strapi community including the core team.
-- [Forum](https://forum.strapi.io/) - Place to discuss, ask questions and find answers, show your Strapi project and get feedback or just talk with other Community members.
-- [Awesome Strapi](https://github.com/strapi/awesome-strapi) - A curated list of awesome things related to Strapi.
+Two directories hold everything worth keeping. Both are gitignored and mounted
+as volumes.
 
----
+| Path | Contents |
+|------|----------|
+| `data/db/data.db` | evaluations, admin accounts, **role permissions** |
+| `data/uploads/` | app icons — roughly 8000 files, ~200 MB |
 
-<sub>🤫 Psst! [Strapi is hiring](https://strapi.io/careers).</sub>
+**The database cannot be regenerated.** The Android app submits evaluations
+anonymously, with no API token, which only works because the *public* role has
+create and update permissions — and those permissions live in the database. A
+fresh database answers 403 to every submission.
+
+## Secrets
+
+Everything needed to run lives in `.env` (see `.env.example`); there is no key
+material anywhere else. TLS is handled by certbot and lives under
+`/etc/letsencrypt`, never in this repo.
+
+None of the secrets are tied to the data — regenerating them only forces an
+admin re-login. Generate each with:
+
+```sh
+openssl rand -base64 32
+```
+
+## nginx
+
+Configuration is tracked in [`deploy/nginx/`](deploy/nginx/README.md), which
+also covers the domains, the legacy `sapio.ovh` hosts, and why access logging
+is off everywhere.
+
+## Strapi CLI
+
+```sh
+npm run develop    # autoReload enabled
+npm run start      # autoReload disabled
+npm run build      # rebuild the admin panel
+```
+
+See the [Strapi documentation](https://docs.strapi.io) for the rest.
