@@ -1,0 +1,15 @@
+.git
+.gitignore
+node_modules
+build
+.cache
+.tmp
+public/uploads/*
+!public/uploads/.gitkeep
+data
+.env
+*.log
+certificate.pem
+privatekey.pem
+deploy.sh
+README_JOHNY

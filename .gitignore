@@ -112,3 +112,13 @@ exports
 *.cache
 build
 .strapi-updater.json
+
+############################
+# Docker deployment
+############################
+
+# Runtime state: SQLite database and uploaded app icons.
+data
+
+# TLS material must never be committed.
+*.pem
