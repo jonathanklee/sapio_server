@@ -12,6 +12,7 @@ installed from these.
 - `strapi.conf`           -> `/etc/nginx/sites-available/strapi.conf`
                              (legacy `server.sapio.ovh`, still proxying)
 - `legacy-log.conf`       -> `/etc/nginx/conf.d/legacy-log.conf`
+- `bootstrap.sh`          -> run once on a fresh machine, see below
 - `upstream.conf`         -> `/etc/nginx/conf.d/upstream.conf`
 
 The vhost files are symlinked into `/etc/nginx/sites-enabled/`. Keep them as
@@ -45,7 +46,22 @@ yet?", which is otherwise unanswerable with logging off.
 wc -l /var/log/nginx/legacy-usage.log     # still in use?
 ```
 
-## Install / update on a fresh machine
+## Fresh machine
+
+```sh
+sudo ./deploy/nginx/bootstrap.sh you@example.com
+```
+
+The vhosts reference `/etc/letsencrypt/live/<name>/fullchain.pem`, and nginx
+refuses to start when those are missing - but certbot needs nginx on :80 to
+answer the HTTP-01 challenge. `bootstrap.sh` breaks the deadlock: a `:80`-only
+config, then certbot for all four certificates, then the real vhosts.
+
+DNS for every name must already point at the machine. To migrate without a
+cutover window, obtain the certificates via a DNS-01 challenge beforehand and
+the script will skip the ones already present.
+
+## Install / update on a machine that already has certificates
 
 ```sh
 sudo cp deploy/nginx/checksap.io.conf      /etc/nginx/sites-available/checksap.io
